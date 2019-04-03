@@ -74,7 +74,7 @@ export interface QueryProps<TData = any, TVariables = OperationVariables> extend
   skip?: boolean;
   onCompleted?: (data: TData) => void;
   onError?: (error: ApolloError) => void;
-  shouldInvalidatePreviousData?: (nextVariables: TVariables | undefined, prevVariables: TVariables | undefined) => boolean;
+  shouldInvalidatePreviousData: (nextVariables: TVariables | undefined, prevVariables: TVariables | undefined) => boolean;
 }
 
 export interface QueryContext {
@@ -106,6 +106,10 @@ export default class Query<TData = any, TVariables = OperationVariables> extends
     ssr: PropTypes.bool,
     partialRefetch: PropTypes.bool,
   };
+  
+  static defaultProps = {
+    shouldInvalidatePreviousData: shallowEqual,
+  }
 
   context: QueryContext | undefined;
 
@@ -204,10 +208,10 @@ export default class Query<TData = any, TVariables = OperationVariables> extends
       this.queryObservable = null;
       this.previousData = {};
       this.updateQuery(nextProps);
-    } else if (nextProps.shouldInvalidatePreviousData) {
-      if (nextProps.shouldInvalidatePreviousData(nextProps.variables, this.props.variables)) {
-        this.previousData = {};
-      }
+    }
+    
+    if (nextProps.shouldInvalidatePreviousData(nextProps.variables, this.props.variables)) {
+      this.previousData = {};
     }
 
     if (this.props.query !== nextProps.query) {
